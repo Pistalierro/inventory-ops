@@ -27,4 +27,21 @@ export class UserProfileService {
 
     await runInInjectionContext(this.injector, () => setDoc(profileRef, profile));
   }
+
+  async getProfile(uid: string): Promise<UserProfile | null> {
+    const profileRef = runInInjectionContext(this.injector, () =>
+      doc(this.firestore, 'users', uid)
+    );
+
+    const snapshot = await runInInjectionContext(this.injector, () =>
+      getDoc(profileRef)
+    );
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return snapshot.data() as UserProfile;
+  }
+
 }
