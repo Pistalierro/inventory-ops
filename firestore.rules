@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function myUid() { return request.auth.uid; }
+    function isSelf(uid) { return signedIn() && myUid() == uid; }
+
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(myUid()));
+    }
+
+    function myRole() {
+      return signedIn() && myUserDoc().data.role is string
+        ? myUserDoc().data.role
+        : null;
+    }
+
+    function isAdmin() { return myRole() == 'admin'; }
+    function isManager() { return myRole() == 'manager'; }
+    function isViewer() { return myRole() == 'viewer'; }
+    function isAdminOrManager() { return isAdmin() || isManager(); }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdminOrManager();
+
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'viewer';
+
+      allow update: if
+        (
+          isSelf(uid)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.role == resource.data.role
+        )
+        || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdminOrManager();
+    }
+
+    match /orders/{orderId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn();
+
+      // manager/admin могут менять только статус и updatedAt
+      allow update: if isAdminOrManager()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status', 'updatedAt']);
+
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
