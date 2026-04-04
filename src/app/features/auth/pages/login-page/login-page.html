@@ -1,1 +1,84 @@
-<p>login-page works!</p>
+<main class="grid min-h-screen place-items-center bg-[var(--color-bg)] p-4 text-[var(--color-text)] sm:p-6">
+  <section
+    class="w-full max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-sm)] sm:p-8"
+    aria-labelledby="login-title"
+  >
+    <header class="mb-6 space-y-1">
+      <h1 id="login-title" class="text-2xl font-bold">Sign in</h1>
+      <p class="text-sm text-[var(--color-text-muted)]">
+        Use your account to continue to InventoryOps.
+      </p>
+    </header>
+
+    <form class="space-y-4" [formGroup]="loginForm" novalidate (ngSubmit)="onSubmit()">
+      <div class="space-y-1.5">
+        <label for="email" class="text-sm font-medium">Email</label>
+        <input id="email" type="email" formControlName="email" autocomplete="email"
+               class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-text)] outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-ring)]"
+        />
+        <div class="min-h-4">
+          @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+            <p class="text-xs text-[var(--color-danger)]">
+              @if (loginForm.controls.email.errors?.['required']) {
+                <span>Email is required.</span>
+              }
+              @if (loginForm.controls.email.errors?.['email']) {
+                <span>Enter a valid email address.</span>
+              }
+            </p>
+          }
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="password" class="text-sm font-medium">Password</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password"
+               class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-text)] outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-ring)]"
+        />
+        <div class="min-h-4">
+          @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+            <p class="text-xs text-[var(--color-danger)]">
+              @if (loginForm.controls.password.errors?.['required']) {
+                <span>Password is required.</span>
+              }
+              @if (loginForm.controls.password.errors?.['minlength']) {
+                <span>Password must be at least 6 characters.</span>
+              }
+            </p>
+          }
+        </div>
+      </div>
+
+      <label class="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+        <input type="checkbox" formControlName="rememberMe"/>
+        <span>Remember me</span>
+      </label>
+
+      @if (submitError()) {
+        <p class="text-sm text-[var(--color-danger)]">{{ submitError() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="isSubmitting() || loginForm.invalid"
+        class="w-full rounded-lg bg-[var(--color-primary)] px-4 py-2 font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        @if (isSubmitting()) {
+          <span>Signing in...</span>
+        } @else {
+          <span>Sign in</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        (click)="onSignUp()"
+        [disabled]="isSubmitting() || loginForm.invalid"
+        class="w-full rounded-lg bg-[var(--color-primary)] px-4 py-2 font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        Create account
+      </button>
+
+    </form>
+  </section>
+</main>
